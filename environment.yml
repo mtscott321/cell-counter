@@ -1,0 +1,7 @@
+name: cell-counter
+channels:
+    - conda-forge
+dependencies:
+    - pyimagej
+    - imagej
+    
