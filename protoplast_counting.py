@@ -11,11 +11,19 @@ density, average cell size, number of cells, and standard deviation of cell numb
 import cv2
 import numpy as np
 import os
+import sys
+import argparse
+
+#%%
+
+ap = argparse.ArgumentParser()
+ap.add_argument("-r", "--read_dir", type=str, default = os.getcwd(), \
+                help="The directory in which the images are saved")
+args = vars(ap.parse_args())
 
 #%%
 #data to be inputted by the user of the program
-read_dir = r'C:\Users\mtsco\OneDrive\Documents\2019 Summer Klavins Lab\19_July_protoplast_images\19_July_Scott'
-write_dir = r'C:\Users\mtsco\OneDrive\Documents\2019 Summer Klavins Lab\19_July_protoplast_images'
+read_dir = args['read_dir']
 im_area = 0.00625 * 11.158163 * 0.001 #volume of a square (uL) * number of squares per image * mL/uL
 
 #%%
