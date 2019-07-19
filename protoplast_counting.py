@@ -56,17 +56,18 @@ def count_circles(im):
 found_circles = []
 total_cells = 0
 for image in os.listdir(read_dir):
-    #read in the image
-    im_dir = read_dir + '/' + image
-    im = cv2.imread(im_dir)
-    
-    #convert to grayscale
-    gray = cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)
-    
-    #count the cells and add it to the data array and the sum
-    circs = count_circles(gray)
-    found_circles.append(circs)
-    total_cells = total_cells + circs
+    if ".jpg" in image:
+        #read in the image
+        im_dir = read_dir + '/' + image
+        im = cv2.imread(im_dir)
+        
+        #convert to grayscale
+        gray = cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)
+        
+        #count the cells and add it to the data array and the sum
+        circs = count_circles(gray)
+        found_circles.append(circs)
+        total_cells = total_cells + circs
     
 
 #%%
