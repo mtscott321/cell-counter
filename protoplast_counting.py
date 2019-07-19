@@ -9,7 +9,6 @@ density, average cell size, number of cells, and standard deviation of cell numb
 #importing needed packages
 
 import cv2
-from IPython.display import Image, display
 import numpy as np
 import os
 
