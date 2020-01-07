@@ -21,17 +21,6 @@ This section is for static parameters that can be changed manually
 read_dir = r"C:\Users\mtsco\OneDrive\Documents\2019 Summer Klavins Lab\cell-counter\113002"
 xl_in_path = r"C:\Users\mtsco\OneDrive\Documents\2019 Summer Klavins Lab\cell-counter\26Dec_Comparing_Manual_vs_Program_Cell_Counts.xls"
 
-
-"""
-PLAN:
-get new parameters
-    go thru each image
-        count the circles 
-        add to array
-find the difference in the actual counts vs the counted and get the percent error and then std dev in error, then an array of how many standard deviations from the average each value is
-minimize the above function, changing the parameters
-repeat until done
-"""
 #%%
 """
 This section of the code is devoted to reading in the values from the excel sheet and 
@@ -59,12 +48,14 @@ average that the cell counts for each image were.
 """
 def residual(params):
     """
+    
     First call the function that counts all of the cells
     in all the images and returns the array of their values
     (I think this is pass by reference and local variables just don't 
     get automatically trashed in Python)
     """
-    found_circles = count_all_cells(params['p1'], params['p2'])
+    print("residual")
+    found_circles = count_all_cells(params['p1'].value, params['p2'].value)
     errors = [a-b for a, b in zip(actual_vals, found_circles)]
     #percent in decimal form because God is dead and we killed her
     percent_errs = [(a-b)/a for a, b in zip(actual_vals, errors)]
@@ -79,6 +70,7 @@ Function that goes through all the images in the directory
 and calls the count_circles function on them
 """
 def count_all_cells(p1, p2):
+    print(p1, p2)
     found_circles = []
     for image in os.listdir(read_dir):
         if ".jpg" in image:
@@ -96,28 +88,65 @@ def count_all_cells(p1, p2):
   
 #%%
 def count_circles(im, p1, p2):
-    
+    print("count circles")
     #annotate this better and the parameters!!!
     circles = cv2.HoughCircles(im,cv2.HOUGH_GRADIENT,1, minDist = 40,
                                 param1=p1, param2=p2, minRadius = 30, maxRadius=70)
     
     circles = np.uint16(np.around(circles))
-    for i in circles[0,:]:
-        # draw the outer circle
-        cv2.circle(im,(i[0],i[1]),i[2],(0,255,0),2)
-        # draw the center of the circle
-        cv2.circle(im,(i[0],i[1]), 2,(0,0,255),3)
+#    for i in circles[0,:]:
+#        # draw the outer circle
+#        cv2.circle(im,(i[0],i[1]),i[2],(0,255,0),2)
+#        # draw the center of the circle
+#        cv2.circle(im,(i[0],i[1]), 2,(0,0,255),3)
     #return number of circles found
     return len(circles[0,:])
 
 #%%
+"""
+Idk how passing parameter objects works so im doing something ICKY
+"""
+def res(params):
+    """from initial count_all_cells() fucntion"""
+    found_circles = []
+    for image in os.listdir(read_dir):
+        if ".jpg" in image:
+            #read in the image
+            im_dir = read_dir + '/' + image
+            im = cv2.imread(im_dir)
+            
+            #convert to grayscale
+            gray = cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)
+            
+            """from initial count_circles() function"""
+            circles = cv2.HoughCircles(gray,cv2.HOUGH_GRADIENT,1, minDist = 40,
+                                param1=p['p1'].value, param2=p['p2'].value, minRadius = 30, maxRadius=70)
+    
+            circles = np.uint16(np.around(circles))
+            found_circles.append(len(circles[0,:]))
+            
+    """from original residual function"""
+    errors = [a-b for a, b in zip(actual_vals, found_circles)]
+    #percent in decimal form because God is dead and we killed her
+    percent_errs = [(a-b)/a for a, b in zip(actual_vals, errors)]
+    mean_perc_err = np.mean(percent_errs)
+    std_dev = stat.stdev(percent_errs)
+    std_dev_arr = (percent_errs - mean_perc_err)/std_dev
+    return std_dev_arr
+#%%
 p = Parameters()
     #initial values determined by the ones I determined by guessing in the previous 
-    #verison of this script
-p.add('p1', min = 0, value=1)
-p.add('p2', min = 0, value=1)
+    #verison of this script, 50 and 35
+p.add('p1', min = 0, value=40)
+p.add('p2', min = 0, value=40)
           
-result = minimize(residual,p)
+result = minimize(res,p)
 print("p1:%.3f,   p2:%.3f\nCell Counts:" % (p['p1'], p['p2']))
 result.params.pretty_print()
+#%%
+
+
+
+
+
 
