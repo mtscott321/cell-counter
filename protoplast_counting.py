@@ -5,30 +5,47 @@ This program is designed to read in images of protoplasts and return information
 density, average cell size, number of cells, and standard deviation of cell numbers in each image
 (which will be used to determine the error in density)
 """
+"""
+20 December 2019 TODO
+*save images
+*upload to Gdrive
+*tailor the program
+    * get an estimated error?
+    *use gaussian thresh to equalize it all in the right way
+    
+
+
+
+"""
 #%%
 #importing needed packages
 
 import cv2
 import numpy as np
 import os
-import sys
 import argparse
+import xlwt
+from lmfit import Parameters, minimize
 
 #%%
 
 ap = argparse.ArgumentParser()
 ap.add_argument("-r", "--read_dir", type=str, default = os.getcwd(), \
-                help="The directory in which the images are saved")
+                help="The directory in which the images to be read are saved")
+#ap.add_argument("-s" "--save_dir", type=str, default=os.getcwd(), \
+#                help="The directory in which the images with circles will be saved.")
 args = vars(ap.parse_args())
-
 #%%
 #data to be inputted by the user of the program
 read_dir = args['read_dir']
+save_dir = str(os.getcwd()) + r"\26Dec2019"
+print(save_dir)
 im_area = 0.00625 * 11.158163 * 0.001 #volume of a square (uL) * number of squares per image * mL/uL
 
 #%%
-def count_circles(im):
+def count_circles(im, image):
     
+    #annotate this better and the parameters!!!
     circles = cv2.HoughCircles(im,cv2.HOUGH_GRADIENT,1, minDist = 40,
                                 param1=50, param2=35, minRadius = 30, maxRadius=70)
     
@@ -42,7 +59,7 @@ def count_circles(im):
     #resize so full image can be rendered in imshow
     h, w = gray.shape
     resize_gray = cv2.resize(im, (int(w/4), int(h/4)))
-    
+    cv2.imwrite(str(save_dir) + "/" + image + "_found.jpg", resize_gray)
     #comment/uncomment to hide/show images of identified circles
 #    cv2.imshow('detected circles', resize_gray)
 #    cv2.waitKey(0)
@@ -52,9 +69,20 @@ def count_circles(im):
     return len(circles[0,:])
 
 
+#%%
+"""
+making an excel sheet to track all the cells in each image so I can compare it to a
+manual count and get the accuracy etc, stats stuff
+"""
+wb = xlwt.Workbook()
+sheet = wb.add_sheet("Comparisons")
 #%% 
 found_circles = []
 total_cells = 0
+cells_in_each_image = []
+col = 1
+sheet.row(1).write(0, "Counted with program")
+
 for image in os.listdir(read_dir):
     if ".jpg" in image:
         #read in the image
@@ -65,10 +93,16 @@ for image in os.listdir(read_dir):
         gray = cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)
         
         #count the cells and add it to the data array and the sum
-        circs = count_circles(gray)
+        circs = count_circles(gray, image)
+        sheet.row(0).write(col, image)
+        sheet.row(1).write(col, circs)
+        col += 1
+
         found_circles.append(circs)
         total_cells = total_cells + circs
     
+
+wb.save("add name here")
 
 #%%
 #calculate the density
@@ -77,4 +111,5 @@ for image in found_circles:
     vols.append(image/im_area)
 
 print("There are %.0f +/- %.0f protplasts/mL in your sample." % (np.average(vols), np.std(vols)))
-    
+#%%
+
