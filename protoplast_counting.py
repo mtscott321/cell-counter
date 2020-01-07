@@ -1,4 +1,4 @@
-"""
+ots wer"""
 Created on Fri Jul 19 12:37:53 2019
 Madeline Scott
 This program is designed to read in images of protoplasts and return information on the 
@@ -111,5 +111,5 @@ for image in found_circles:
     vols.append(image/im_area)
 
 print("There are %.0f +/- %.0f protplasts/mL in your sample." % (np.average(vols), np.std(vols)))
-#%%
+
 
