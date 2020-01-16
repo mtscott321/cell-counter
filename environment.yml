@@ -5,7 +5,7 @@ channels:
 dependencies:
   - ca-certificates=2019.11.28=hecc5488_0
   - certifi=2019.11.28=py38_0
-  - python=3.7
+  - python=3.8
   - pip=19.3.1=py38_0
   - setuptools=44.0.0=py38_0
   - wheel=0.33.6=py38_0
