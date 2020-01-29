@@ -36,9 +36,10 @@ is more comfortable with. If I did my job right, this should be all you have to 
 to work the program.
 """
 
-job_id = -1 #this is because there is no job -1. 
-username = "Username_McUsername"
-password = "Password_McPassword"
+job_id = 113002
+ #this is because there is no job -1. 
+username = "maddyscott"
+password = "Quix0tic-armadi11o"
 image_area = 0.00625 * 11.158163 * 0.001 #this is actually our default image area, in mL
 
 #%%
@@ -79,46 +80,37 @@ image_area = input_var_dict["area"]
 
 #%%
 """
-This module connects to Aquarium 
+This module connects to Aquariumand downloads all the images
 """
 prod = AqSession(username, password,"http://52.27.43.242/") #the URL is for the UW BIOFAB production server
 
 #Enter a plan ID, get a list of operations.
 job = prod.Job.find(job_id)
-# for file in job.uploads:
+for file in job.uploads:
 #     file.async_download(outdir=dir_path,overwrite=True)
 cwd = os.getcwd()
 dir_path= "%s/Images_%d" % (cwd, job_id)
-#%%
 os.mkdir(dir_path)
-
-# uploads = job.uploads
 job_uploads=prod.Upload.where({'job': job.id})
-# prod.Upload._download_files(job_uploads, dir_path, overwrite)
 for u in job_uploads:
     u.download(outdir=dir_path, filename = u.name, overwrite=False)
-    
-
 
 #%%
 """
-Old code; ignore.
+Old code for reading the images from a directory into which the images have already 
+been downloaded.
 """
 
 """
 ap.add_argument("-r", "--read_dir", type=str, default = os.getcwd(), \
                 help="The directory in which the images to be read are saved")
-"""
-#ap.add_argument("-s" "--save_dir", type=str, default=os.getcwd(), \
-#                help="The directory in which the images with circles will be saved.")
-#args = vars(ap.parse_args())
-#%%
+args = vars(ap.parse_args())
+
 #data to be inputted by the user of the program
-read_dir = args['read_dir']
+read_dir = args['read_dir'] #would need to change reading in back to read_dir not dir_path
 save_dir = str(os.getcwd()) + r"\26Dec2019"
 print(save_dir)
-im_area = 0.00625 * 11.158163 * 0.001 #volume of a square (uL) * number of squares per image * mL/uL
-
+"""
 #%%
 def count_circles(im, image):
     
@@ -161,7 +153,7 @@ cells_in_each_image = []
 col = 1
 sheet.row(1).write(0, "Counted with program")
 
-for image in os.listdir(read_dir):
+for image in os.listdir(dir_path):
     if ".jpg" in image:
         #read in the image
         im_dir = read_dir + '/' + image
