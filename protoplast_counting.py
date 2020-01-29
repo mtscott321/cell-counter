@@ -1,22 +1,11 @@
-ots wer"""
+"""
 Created on Fri Jul 19 12:37:53 2019
 Madeline Scott
 This program is designed to read in images of protoplasts and return information on the 
 density, average cell size, number of cells, and standard deviation of cell numbers in each image
 (which will be used to determine the error in density)
 """
-"""
-20 December 2019 TODO
-*save images
-*upload to Gdrive
-*tailor the program
-    * get an estimated error?
-    *use gaussian thresh to equalize it all in the right way
-    
 
-
-
-"""
 #%%
 #importing needed packages
 
@@ -26,15 +15,103 @@ import os
 import argparse
 import xlwt
 from lmfit import Parameters, minimize
+import os
+import pandas as pd
+import os
+from FlowCytometryTools import *
+from pylab import *
+from FlowCytometryTools import FCPlate
+import pprint
+import csv
+import pydent
+from pydent import AqSession
+from tqdm import tqdm
+
 
 #%%
+"""
+This module is for data to be inputted by the user. All of them can also be 
+inputted directly on the command line, however. It's really just whatever the user 
+is more comfortable with. If I did my job right, this should be all you have to edit
+to work the program.
+"""
 
+job_id = -1 #this is because there is no job -1. 
+username = "Username_McUsername"
+password = "Password_McPassword"
+image_area = 0.00625 * 11.158163 * 0.001 #this is actually our default image area, in mL
+
+#%%
+"""
+This (disgusting, confusing) code changes any variables that were specified through the command
+prompt, keeping all others the same as they are in the above module. This means the user has the option
+for every variable to specify it on the command line or in the program. 
+"""
+
+#make a dictionary with all the values the user inputted assigned to variables
+input_var_dict = {
+        "job": job_id,
+        "username": username,
+        "password": password,
+        "area": image_area #this is actually our default image area, in mL
+        }
+
+#create the argument parser and add arguments
 ap = argparse.ArgumentParser()
+ap.add_argument("-j", "--job", type=int, help = "The job ID for the protoplast transfection that produced\
+                the images you want to be analyzed")
+ap.add_argument("-u", "--username", type=str, help = "The Aquarium username of the user")
+ap.add_argument('-p', "--password", type = str, help = "The Aquarium password of the user")
+ap.add_argument("-a", "--area", type=int, help = "The area, in mL, of each image. This value must\
+                be the same for each image.")
+#make it into a dictionary
+args = vars(ap.parse_args())
+
+for key in args: #for every possible argument
+    if type(args[key]) is not None: #if it was used
+        input_var_dict[key] = args[key] #change the dictionary value to be the inputted value
+
+#reassign the variables if they were changed through the command prompt
+job_id = input_var_dict["job"] 
+username = input_var_dict["username"]
+password = input_var_dict["password"] 
+image_area = input_var_dict["area"] 
+
+#%%
+"""
+This module connects to Aquarium 
+"""
+prod = AqSession(username, password,"http://52.27.43.242/") #the URL is for the UW BIOFAB production server
+
+#Enter a plan ID, get a list of operations.
+job = prod.Job.find(job_id)
+# for file in job.uploads:
+#     file.async_download(outdir=dir_path,overwrite=True)
+cwd = os.getcwd()
+dir_path= "%s/Images_%d" % (cwd, job_id)
+#%%
+os.mkdir(dir_path)
+
+# uploads = job.uploads
+job_uploads=prod.Upload.where({'job': job.id})
+# prod.Upload._download_files(job_uploads, dir_path, overwrite)
+for u in job_uploads:
+    u.download(outdir=dir_path, filename = u.name, overwrite=False)
+    
+
+
+#%%
+"""
+Old code; ignore.
+"""
+
+"""
 ap.add_argument("-r", "--read_dir", type=str, default = os.getcwd(), \
                 help="The directory in which the images to be read are saved")
+"""
 #ap.add_argument("-s" "--save_dir", type=str, default=os.getcwd(), \
 #                help="The directory in which the images with circles will be saved.")
-args = vars(ap.parse_args())
+#args = vars(ap.parse_args())
 #%%
 #data to be inputted by the user of the program
 read_dir = args['read_dir']
@@ -73,9 +150,10 @@ def count_circles(im, image):
 """
 making an excel sheet to track all the cells in each image so I can compare it to a
 manual count and get the accuracy etc, stats stuff
-"""
+
 wb = xlwt.Workbook()
 sheet = wb.add_sheet("Comparisons")
+"""
 #%% 
 found_circles = []
 total_cells = 0
@@ -102,7 +180,7 @@ for image in os.listdir(read_dir):
         total_cells = total_cells + circs
     
 
-wb.save("add name here")
+#wb.save("add name here")
 
 #%%
 #calculate the density

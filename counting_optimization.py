@@ -122,8 +122,11 @@ def res(params):
             circles = cv2.HoughCircles(gray,cv2.HOUGH_GRADIENT,1, minDist = 40,
                                 param1=p['p1'].value, param2=p['p2'].value, minRadius = 30, maxRadius=70)
     
-            circles = np.uint16(np.around(circles))
-            found_circles.append(len(circles[0,:]))
+            if(type(circles) is None):
+                found_circles.append(0)
+            else:
+                circles = np.uint16(np.around(circles))
+                found_circles.append(len(circles[0,:]))
             
     """from original residual function"""
     errors = [a-b for a, b in zip(actual_vals, found_circles)]
