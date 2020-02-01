@@ -68,11 +68,14 @@ ap.add_argument("-a", "--area", type=int, help = "The area, in mL, of each image
 #make it into a dictionary
 args = vars(ap.parse_args())
 
+
+
 for key in args: #for every possible argument
-    if type(args[key]) is not None: #if it was used
+    if args[key] is not None: #if it was used
         input_var_dict[key] = args[key] #change the dictionary value to be the inputted value
 
 #reassign the variables if they were changed through the command prompt
+ 
 job_id = input_var_dict["job"] 
 username = input_var_dict["username"]
 password = input_var_dict["password"] 
@@ -86,8 +89,6 @@ prod = AqSession(username, password,"http://52.27.43.242/") #the URL is for the 
 
 #Enter a plan ID, get a list of operations.
 job = prod.Job.find(job_id)
-for file in job.uploads:
-#     file.async_download(outdir=dir_path,overwrite=True)
 cwd = os.getcwd()
 dir_path= "%s/Images_%d" % (cwd, job_id)
 os.mkdir(dir_path)
@@ -114,7 +115,11 @@ def add_count_to_array(item_id, proto_count):
 Function that parses the name of each image and returns the item number as an integer
 """
 def id_parser(image_name):
-    
+    assert type(image_name) is str
+    im_split = image_name.split("_")[0]
+    print(image_name.split("_")[0])
+    image_id = int(im_split)
+    return image_id
 
 #%%
 """
@@ -148,7 +153,7 @@ def count_circles(im, image):
     
     #resize so full image can be rendered in imshow
     h, w = gray.shape
-    resize_gray = cv2.resize(im, (int(w/4), int(h/4)))
+    resize_gray = cv2.resize(im, (int(w/4), int(h/4)))\
     cv2.imwrite(str(save_dir) + "/" + image + "_found.jpg", resize_gray)
     #comment/uncomment to hide/show images of identified circles
 #    cv2.imshow('detected circles', resize_gray)
@@ -168,16 +173,17 @@ wb = xlwt.Workbook()
 sheet = wb.add_sheet("Comparisons")
 """
 #%% 
-found_circles = []
+"""
+This goes through each image and calls relevant methods. It's a shitty version of a main.
+"""
 total_cells = 0
 cells_in_each_image = []
 col = 1
-sheet.row(1).write(0, "Counted with program")
-
+save_dir = os.mkdir(dir_path + r'\Counted_Cells')
 for image in os.listdir(dir_path):
     if ".jpg" in image:
         #read in the image
-        im_dir = read_dir + '/' + image
+        im_dir = dir_path + '/' + image
         im = cv2.imread(im_dir)
         
         #convert to grayscale
@@ -185,22 +191,37 @@ for image in os.listdir(dir_path):
         
         #count the cells and add it to the data array and the sum
         circs = count_circles(gray, image)
-        sheet.row(0).write(col, image)
-        sheet.row(1).write(col, circs)
         col += 1
 
-        found_circles.append(circs)
-        total_cells = total_cells + circs
+        add_count_to_array(id_parser(image), circs)
     
-
 #wb.save("add name here")
 
 #%%
-#calculate the density
-vols = []
-for image in found_circles:
-    vols.append(image/im_area)
+"""
+Calculates the density for each item and adds it to a spreadsheet
+"""
+wb = xlwt.Workbook()
+sheet = wb.add_sheet("protoplasts_per_mL")
+sheet1 = wb.add_sheet("raw protoplast counts")
+sheet.row(0).write(0, "Item ID")
+sheet1.row(0).write(0, "Item ID")
+sheet.row(0).write(1, "protoplats_per_mL (average)")
+row = 1
+for item in items_and_counts:
+    sum_ = 0
+    num_circ = 0
+    sheet.row(row).write(0, item)
+    sheet1.row(row).write(0, item)
+    for val in items_and_counts[item]:
+        sum_ = sum_ + val
+        num_circ = num_circ + 1
+        sheet1.row(row).write(num_circ, val)
+        if row == 1:
+            sheet1.row(0).write(num_circ, 0)
+    avg = sum_ * 1.0 / num_circ
+    sheet.row(row).write(1, (avg*1.0 /image_area))
+    row = row +1
 
-print("There are %.0f +/- %.0f protplasts/mL in your sample." % (np.average(vols), np.std(vols)))
-
-
+wb.save("Job%d Protoplast Counts.xls" % (job_id))
+    
