@@ -97,6 +97,27 @@ for u in job_uploads:
 
 #%%
 """
+Defines a dictionary with each item as key that leads to an array of the counts for each of its images
+in the main code. Also, there is a function which adds a new image count value to the appropriate
+item's count array
+"""
+items_and_counts = {}
+def add_count_to_array(item_id, proto_count):
+    if item_id in items_and_counts:
+        items_and_counts[item_id].append(proto_count)
+    else:
+        items_and_counts[item_id] = []
+        items_and_counts[item_id].append(proto_count)
+
+#%%
+"""
+Function that parses the name of each image and returns the item number as an integer
+"""
+def id_parser(image_name):
+    
+
+#%%
+"""
 Old code for reading the images from a directory into which the images have already 
 been downloaded.
 """
