@@ -218,7 +218,7 @@ for item in items_and_counts:
         num_circ = num_circ + 1
         sheet1.row(row).write(num_circ, val)
         if row == 1:
-            sheet1.row(0).write(num_circ, 0)
+            sheet1.row(0).write(num_circ, num_circ)
     avg = sum_ * 1.0 / num_circ
     sheet.row(row).write(1, (avg*1.0 /image_area))
     row = row +1
