@@ -38,8 +38,8 @@ to work the program.
 
 job_id = 113002
  #this is because there is no job -1. 
-username = "maddyscott"
-password = "Quix0tic-armadi11o"
+username = "UsernameMcUsername"
+password = "PasswordMcPassword"
 image_area = 0.00625 * 11.158163 * 0.001 #this is actually our default image area, in mL
 
 #%%
