@@ -36,10 +36,10 @@ is more comfortable with. If I did my job right, this should be all you have to 
 to work the program.
 """
 
-job_id = 113002
+job_id = 114868
  #this is because there is no job -1. 
-username = "UsernameMcUsername"
-password = "PasswordMcPassword"
+username = "maddyscott"
+password = "Quix0tic-armadi11o"
 image_area = 0.00625 * 11.158163 * 0.001 #this is actually our default image area, in mL
 
 #%%
@@ -93,6 +93,7 @@ cwd = os.getcwd()
 dir_path= "%s/Images_%d" % (cwd, job_id)
 os.mkdir(dir_path)
 job_uploads=prod.Upload.where({'job': job.id})
+#if job_uploads is not None
 for u in job_uploads:
     u.download(outdir=dir_path, filename = u.name, overwrite=False)
 
@@ -144,7 +145,15 @@ def count_circles(im, image):
     circles = cv2.HoughCircles(im,cv2.HOUGH_GRADIENT,1, minDist = 40,
                                 param1=50, param2=35, minRadius = 30, maxRadius=70)
     
-    circles = np.uint16(np.around(circles))
+    if circles is None:
+        print(circles)
+        circles = np.uint16(np.around([[]]))
+        print(circles)
+    else:
+        print(circles)
+        circles = np.uint16(np.around(circles))
+        print(circles)
+        
     for i in circles[0,:]:
         # draw the outer circle
         cv2.circle(im,(i[0],i[1]),i[2],(0,255,0),2)
@@ -153,7 +162,7 @@ def count_circles(im, image):
     
     #resize so full image can be rendered in imshow
     h, w = gray.shape
-    resize_gray = cv2.resize(im, (int(w/4), int(h/4)))\
+    resize_gray = cv2.resize(im, (int(w/4), int(h/4)))
     cv2.imwrite(str(save_dir) + "/" + image + "_found.jpg", resize_gray)
     #comment/uncomment to hide/show images of identified circles
 #    cv2.imshow('detected circles', resize_gray)
